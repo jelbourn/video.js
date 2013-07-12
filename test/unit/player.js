@@ -108,8 +108,7 @@ test('should get tag, source, and track settings', function(){
 
   player.dispose();
 
-
-  ok(tag['player'] !== player, 'tag player ref killed');
+  ok(tag['player'] === null, 'tag player ref killed');
   ok(!vjs.players['example_1'], 'global player ref killed');
   ok(player.el() === null, 'player el killed');
 });
@@ -229,21 +228,23 @@ test('should set controls and trigger event', function() {
   player.dispose();
 });
 
-// Can't figure out how to test fullscreen events with tests
-// Browsers aren't triggering the events at least
-// asyncTest('should trigger the fullscreenchange event', function() {
-//   expect(3);
+test('should use custom message when encountering an unsupported video type',
+    function() {
+  videojs.options['incompatibleVideoMessage'] = 'Video no go';
+  var fixture = document.getElementById('qunit-fixture');
 
-//   var player = PlayerTest.makePlayer();
-//   player.on('fullscreenchange', function(){
-//     ok(true, 'fullscreenchange event fired');
-//     ok(this.isFullScreen === true, 'isFullScreen is true');
-//     ok(this.el().className.indexOf('vjs-fullscreen') !== -1, 'vjs-fullscreen class added');
+  var html =
+      '<video id="example_1">' +
+        '<source src="fake.foo" type="video/foo">' +
+      '</video>';
 
-//     player.dispose();
-//     start();
-//   });
+  fixture.innerHTML += html;
 
-//   player.requestFullScreen();
-// });
+  var tag = document.getElementById('example_1');
+  var player = new vjs.Player(tag);
 
+  var incompatibilityMessage = player.el().getElementsByTagName('p')[0];
+  equal(incompatibilityMessage.textContent, 'Video no go');
+
+  player.dispose();
+});
